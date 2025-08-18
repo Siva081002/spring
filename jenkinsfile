@@ -40,9 +40,7 @@ pipeline {
         }
         stage('Deploy'){
             steps{
-                sh '''
-                nohup java -jar target/sivareddy-1.0.0.jar --server.port=9090 > app.log 2>&1 &
-                '''
+                 sh 'nohup java -jar target/sivareddy-1.0.0.jar --server.port=9090 > app.log 2>&1 &'
             }
         }
     }
