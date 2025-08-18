@@ -37,10 +37,10 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 sh """
-                mvn sonar:sonar \
-                  -Dsonar.projectKey=springboot-demo \
+                mvn clean verify sonar:sonar \
+                  -Dsonar.projectKey=reddy \
                   -Dsonar.host.url=http://52.56.61.24:9000 \
-                  -Dsonar.login=$SONARQUBE_TOKEN
+                  -Dsonar.login=sqp_599ddf6947e52d5478a29dba122c1b1fe6fc0be6
                 """
             }
         }
