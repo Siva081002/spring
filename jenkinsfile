@@ -32,7 +32,7 @@ pipeline {
             steps{
                 sh '''
                mvn clean verify sonar:sonar \
-  -Dsonar.projectKey=simple-hello-siva \
+  -Dsonar.projectKey=sivareddy \
   -Dsonar.host.url=http://52.56.61.24:9000/:9000 \
   -Dsonar.login=sqa_ee8c2448d62d15fa3297ad5daccc9236c93485db
                 '''
@@ -41,7 +41,7 @@ pipeline {
         stage('Deploy'){
             steps{
                 sh '''
-                nohup java -jar target/simple-hello-siva-1.0.0.jar --server.port=9090 > app.log 2>&1 &
+                nohup java -jar target/sivareddy-1.0.0.jar --server.port=9090 > app.log 2>&1 &
                 '''
             }
         }
