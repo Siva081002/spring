@@ -4,46 +4,53 @@ pipeline {
     triggers {
         githubPush()
     }
-    tools{
+
+    tools {
         maven 'maven'
     }
+
     environment {
-        SONARQUBE_URL = 'http://52.56.61.24:9000 '
-        SONARQUBE_TOKEN = credentials ('sivasonar')
+        SONARQUBE_URL = 'http://52.56.61.24:9000'
+        SONARQUBE_TOKEN = credentials('sivasonar')
     }
+
     stages {
-        stage('Checkout'){
-            steps{
+        stage('Checkout') {
+            steps {
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Siva081002/spring.git'
                 sh 'ls -la'
             }
         }
-        stage('Build'){
-            steps{
+
+        stage('Build') {
+            steps {
                 sh 'mvn clean install'
             }
         }
-        stage('Package'){
-            steps{
+
+        stage('Package') {
+            steps {
                 sh 'mvn package'
             }
         }
-        stage('SonarQube Analysis'){
-            steps{
-                sh '''
-               mvn clean verify sonar:sonar \
-  -Dsonar.projectKey=sivareddy \
-  -Dsonar.host.url=http://52.56.61.24:9000 \
-  -Dsonar.login=sqa_ee8c2448d62d15fa3297ad5daccc9236c93485db
-                '''
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh """
+                mvn sonar:sonar \
+                  -Dsonar.projectKey=sivareddy \
+                  -Dsonar.host.url=$SONARQUBE_URL \
+                  -Dsonar.login=$SONARQUBE_TOKEN
+                """
             }
         }
-        stage('Deploy'){
-            steps{
-                 sh 'nohup java -jar target/sivareddy-1.0.0.jar --
-server.port=9090 > app.log 2>&1 &'
+
+        stage('Deploy') {
+            steps {
+                sh """
+                nohup java -jar target/simple-siva-hello-1.0.0.jar --server.port=9000 > app.log 2>&1 &
+                """
             }
         }
     }
 }
-
