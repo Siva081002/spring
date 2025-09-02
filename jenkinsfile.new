@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_REPO = 'yourdockerhubusername/springboot-app' // CHANGE THIS
+        IMAGE_TAG = "v1-${BUILD_NUMBER}"
+        AWS_REGION = 'eu-west-3'
+        EKS_CLUSTER = 'batch4-team1-eks-cluster'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git url: 'https://github.com/Siva081002/spring.git', branch: 'main'
+            }
+        }
+
+        stage('Build Spring Boot App') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                    sh """
+                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER}
+
+                        sed -i "s|IMAGE_PLACEHOLDER|${DOCKERHUB_REPO}:${IMAGE_TAG}|" k8s/deployment.yaml
+
+                        kubectl apply -f k8s/deployment.yaml
+                        kubectl apply -f k8s/service.yaml
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment to EKS successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
+        }
+    }
+}
