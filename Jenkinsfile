@@ -5,9 +5,7 @@ pipeline {
         githubPush()
     }
 
-    tools {
-        maven 'maven'
-    }
+    tools {     nodejs 'NodeJS-17' }
 
     environment {
         SONARQUBE_URL = 'http://52.56.61.24:9000'
